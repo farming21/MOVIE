@@ -1,36 +1,23 @@
-# farming21/movie
+# farming21/MOVIE
 
-Website video + panel admin dalam **satu repository**.
+Website video + panel admin dalam satu repository.
 
-## Fitur utama
-
-- Kategori tetap: **Indonesia**, **Papua**, **Barat**.
-- Slug otomatis dari judul.
-- Part otomatis per kategori: `part1`, `part2`, `part3`, dan seterusnya.
-- Saat video lama diedit, slug/Part tidak berubah.
-- Urutan website berdasarkan **tanggal + jam publikasi**, bukan waktu terakhir diedit.
-- Google Drive player.
-- Cover lokal untuk video baru.
-- Cover video lama tidak disalin atau dibaca; generator memakai cover publik dari repository lama sampai cover baru diganti.
-- GitHub Actions menghasilkan halaman video dan deploy ke GitHub Pages.
-- `admin/` menjadi pengganti panel RepoPilot-AI dalam repository yang sama.
+## Aturan inti
+- Kategori: Indonesia, Papua, Barat.
+- Slug otomatis dari judul + Part.
+- Part otomatis dihitung per kategori saat video baru dibuat.
+- Edit video tidak mengubah slug/Part.
+- Urutan website berdasarkan tanggal + jam publikasi, bukan waktu terakhir diedit.
+- Cover: `covers/[slug].jpg`.
+- OG cover: `covers/og/[slug].jpg`, 1200x630 px.
+- Google Drive player tetap digunakan.
+- `videos.json` adalah source of truth.
+- GitHub Actions menjalankan generator dan deploy ke GitHub Pages.
 
 ## Admin
+Buka `/admin/`. Panel memakai GitHub Personal Access Token yang dimasukkan sendiri oleh admin. Token hanya disimpan di sessionStorage browser. Token harus memiliki akses Contents: Read and write pada repository `farming21/MOVIE`.
 
-Buka:
-
-`https://farming21.github.io/movie/admin/`
-
-Panel menggunakan GitHub Personal Access Token yang kamu masukkan sendiri. Token hanya disimpan di `sessionStorage` browser.
-
-Untuk repository `farming21/movie`, token harus memiliki izin **Contents: Read and write**.
-
-## Data
-
-`videos.json` adalah source of truth.
-
-Field publikasi:
-
+## Data publikasi
 ```json
 {
   "tanggal": "2026-09-19",
@@ -38,20 +25,8 @@ Field publikasi:
 }
 ```
 
-Video dengan tanggal sama diurutkan berdasarkan jam. Mengedit judul/deskripsi/cover tidak mengubah urutan selama tanggal dan jam publikasi tidak diubah.
-
-## Migrasi dari farming21/indonesia
-
-Saat pertama kali build, workflow menjalankan `scripts/import_legacy.py` jika `videos.json` masih `[]`. Script mengambil `videos.json` lama dari repository publik dan hanya menambahkan `jam: "00:00"` untuk data lama. **Folder `covers/` lama tidak dibaca.**
-
-Cover lama tetap ditampilkan dari:
-
-`https://farming21.github.io/indonesia/covers/...`
-
-Ketika kamu upload cover baru melalui Admin, file disimpan ke `covers/` di repository `movie`.
+## Migrasi
+Data lama dari `farming21/indonesia` dapat diimpor melalui `scripts/import_legacy.py`. Script hanya membaca `videos.json` lama; folder `covers/` lama tidak dibaca.
 
 ## GitHub Pages
-
-Workflow menggunakan GitHub Actions untuk generate `index.html` dan `videos/*.html`, lalu deploy ke GitHub Pages.
-
-Setelah file di-upload ke `main`, buka Settings → Pages dan pilih **GitHub Actions** sebagai Source bila belum terpilih.
+Setelah upload ke branch `main`, buka Settings → Pages dan pilih GitHub Actions sebagai Source.
