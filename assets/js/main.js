@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{const b=document.querySelectorAll('.filter-btn'),c=document.querySelectorAll('.video-card');b.forEach(x=>x.addEventListener('click',()=>{b.forEach(y=>y.classList.remove('active'));x.classList.add('active');const f=x.dataset.filter;c.forEach(y=>y.style.display=(f==='all'||y.dataset.category===f)?'block':'none')}));});

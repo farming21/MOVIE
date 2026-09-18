@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Movie Admin — Farming21</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px}
+.container{max-width:960px;margin:auto}.card{background:#fff;border-radius:10px;padding:22px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+h1{margin:0 0 6px}h2{margin:0 0 14px}.muted{color:#6b7280;font-size:.88rem}.form-group{margin:0 0 14px}label{display:block;font-weight:700;margin-bottom:6px}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:7px;font-size:1rem}textarea{min-height:100px;resize:vertical}
+button{border:0;border-radius:7px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:#2563eb;color:#fff}.secondary{background:#6b7280;color:#fff}.danger{background:#ef4444;color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.status{display:none;margin-top:14px;padding:12px;border-radius:7px;white-space:pre-wrap}.ok{display:block;background:#dcfce7;color:#166534}.err{display:block;background:#fee2e2;color:#991b1b}
+.item{display:flex;justify-content:space-between;gap:16px;border:1px solid #e5e7eb;border-radius:8px;padding:13px;margin:8px 0}.item h3{margin:0 0 4px;font-size:1rem}.meta{font-size:.82rem;color:#6b7280}.badge{display:inline-block;padding:3px 8px;border-radius:20px;background:#e0e7ff;color:#3730a3;font-size:.75rem;font-weight:700;text-transform:capitalize}
+.hidden{display:none!important}.note{padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;color:#1e40af;font-size:.86rem}
+@media(max-width:650px){body{padding:12px}.row{grid-template-columns:1fr}.item{flex-direction:column}.actions button{flex:1}}
+</style>
+</head>
+<body><div class="container">
+<div class="card"><h1>Movie Admin</h1><p class="muted">Panel gabungan untuk <b>farming21/movie</b>. Token hanya disimpan di session browser.</p></div>
+
+<div id="loginCard" class="card">
+<h2>🔐 Login GitHub</h2>
+<p class="muted">Gunakan GitHub Personal Access Token yang memiliki izin Contents: Read and write pada repository <b>farming21/movie</b>. Jangan kirim token kepada siapa pun.</p>
+<div class="form-group"><label>GitHub Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div>
+<button id="login" class="primary">Masuk</button><div id="loginStatus" class="status"></div>
+</div>
+
+<div id="app" class="hidden">
+<div class="card">
+<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2 id="formTitle">Tambah Video Baru</h2><button id="logout" class="secondary">Logout</button></div>
+<div class="note">Kategori: Indonesia / Papua / Barat. Slug dan Part dibuat otomatis. Saat edit, slug/Part tidak berubah.</div>
+<form id="form" style="margin-top:14px">
+<input id="editSlug" type="hidden">
+<div class="form-group"><label>Judul Video *</label><input id="judul" maxlength="200" required></div>
+<div class="form-group"><label>Slug otomatis</label><input id="slug" readonly><small class="muted">Dibuat dari judul + Part kategori.</small></div>
+<div class="row">
+<div class="form-group"><label>Google Drive ID *</label><input id="driveId" maxlength="200" required></div>
+<div class="form-group"><label>Kategori *</label><select id="kategori" required><option value="">Pilih kategori</option><option value="indonesia">Indonesia</option><option value="papua">Papua</option><option value="barat">Barat</option></select></div>
+</div>
+<div class="row">
+<div class="form-group"><label>Tanggal Publikasi *</label><input id="tanggal" type="date" required></div>
+<div class="form-group"><label>Jam Publikasi *</label><input id="jam" type="time" step="60" required><small class="muted">Gunakan waktu lokal Papua/WIT.</small></div>
+</div>
+<div class="form-group"><label>Deskripsi</label><textarea id="deskripsi" maxlength="5000"></textarea></div>
+<div class="form-group"><label>Cover Image</label><input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">Cover baru disimpan di covers/. Cover lama dari repository lama tetap dapat dipakai.</small></div>
+<div class="actions"><button class="primary" id="submit" type="submit">Publish Video</button><button class="secondary" id="reset" type="button">Reset</button></div>
+<div id="status" class="status"></div>
+</form></div>
+
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h2>📋 Daftar Video</h2><button id="refresh" class="secondary">Refresh</button></div><div id="list" class="muted">Memuat...</div></div>
+</div></div>
+
+<script>
+'use strict';
+const OWNER='farming21', REPO='movie', BRANCH='main', API='https://api.github.com';
+const KEY='movie_admin_token';
+let token=sessionStorage.getItem(KEY)||'', videos=[], dataSha='', editing=false;
+const $=id=>document.getElementById(id);
+function msg(el,text,type){el.textContent=text;el.className='status '+(type==='ok'?'ok':'err');el.style.display='block'}
+function clearMsg(el){el.style.display='none'}
+function authHeaders(){return {'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}}
+async function api(path,opts={}){const r=await fetch(API+path,{...opts,headers:{...authHeaders(),...(opts.headers||{})}});const t=await r.text();let j={};try{j=t?JSON.parse(t):{}}catch{}if(!r.ok)throw new Error(j.message||('HTTP '+r.status));return j}
+function repoPath(path){return '/repos/'+OWNER+'/'+REPO+'/contents/'+path}
+function nowDate(){const d=new Date();$('tanggal').value=d.toLocaleDateString('en-CA');$('jam').value=d.toTimeString().slice(0,5)}
+function slugBase(s){return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'video'}
+function nextPart(cat){let max=0;for(const v of videos){if(v.kategori!==cat)continue;const m=String(v.slug||'').match(/-part(\d+)$/i);if(m)max=Math.max(max,Number(m[1]))}return max+1}
+function updateAutoSlug(){if(editing)return;const cat=$('kategori').value,title=$('judul').value.trim();if(!cat||!title){$('slug').value='';return}$('slug').value=slugBase(title)+'-part'+nextPart(cat)}
+function sortVideos(a,b){const x=(a.tanggal||'')+'T'+(a.jam||'00:00'),y=(b.tanggal||'')+'T'+(b.jam||'00:00');return y.localeCompare(x)}
+async function loadData(){const r=await api(repoPath('videos.json')+'?ref='+encodeURIComponent(BRANCH));dataSha=r.sha;videos=Array.isArray(JSON.parse(atob(r.content.replace(/\n/g,''))))?JSON.parse(atob(r.content.replace(/\n/g,''))):[];videos=videos.map(v=>({...v,jam:v.jam||'00:00'}));render()}
+function render(){const el=$('list');el.innerHTML='';if(!videos.length){el.textContent='Belum ada video.';return}[...videos].sort(sortVideos).forEach(v=>{const item=document.createElement('div');item.className='item';const info=document.createElement('div');const h=document.createElement('h3');h.textContent=v.judul||v.slug;const m=document.createElement('div');m.className='meta';m.innerHTML='<span class="badge"></span> · '+(v.tanggal||'-')+' '+(v.jam||'00:00')+' · '+v.slug;m.querySelector('.badge').textContent=v.kategori||'';info.append(h,m);const a=document.createElement('div');a.className='actions';const e=document.createElement('button');e.className='secondary';e.textContent='Edit';e.onclick=()=>editVideo(v.slug);const d=document.createElement('button');d.className='danger';d.textContent='Hapus';d.onclick=()=>deleteVideo(v.slug);a.append(e,d);item.append(info,a);el.append(item)})}
+async function readCoverBase64(file){if(!file)return null;const img=await new Promise((res,rej)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);res(i)};i.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Gagal membaca cover'))};i.src=u});const max=1280,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.82).split(',')[1]}
+async function putFile(path,base64,message,sha=null){const body={message,content:base64,branch:BRANCH};if(sha)body.sha=sha;return api(repoPath(path),{method:'PUT',body:JSON.stringify(body)})}
+async function saveVideos(){const content=btoa(unescape(encodeURIComponent(JSON.stringify(videos,null,2)+'\n')));const r=await putFile('videos.json',content,'Update videos.json');dataSha=r.content?.sha||dataSha}
+async function coverSha(path){try{const r=await api(repoPath(path)+'?ref='+BRANCH);return r.sha}catch{return null}}
+async function submitForm(e){e.preventDefault();$('submit').disabled=true;try{const title=$('judul').value.trim(),drive=$('driveId').value.trim(),cat=$('kategori').value,date=$('tanggal').value,time=$('jam').value,desc=$('deskripsi').value.trim(),old=$('editSlug').value.trim();if(!title||!drive||!cat||!date||!time)throw new Error('Isi semua field wajib.');let slug=old||$('slug').value;if(!slug)throw new Error('Slug belum terbentuk.');const existing=videos.find(v=>v.slug===slug);let cover=existing?.cover||'';const file=$('coverFile').files[0];if(file){const b64=await readCoverBase64(file);const path='covers/'+slug+'.jpg';const sha=await coverSha(path);await putFile(path,b64,'Add/update cover '+slug,sha);cover=path}
+const item={slug,judul:title,driveId:drive,tanggal:date,jam:time,deskripsi:desc,kategori:cat};if(cover)item.cover=cover;
+if(old){const idx=videos.findIndex(v=>v.slug===old);if(idx<0)throw new Error('Video edit tidak ditemukan.');item.slug=old;videos[idx]=item}else{videos.push(item)}
+await saveVideos();msg($('status'),old?'✅ Video berhasil diupdate.':'✅ Video berhasil dipublish.','ok');resetForm();await loadData()
+}catch(err){msg($('status'),'❌ '+err.message,'err')}finally{$('submit').disabled=false}}
+function editVideo(slug){const v=videos.find(x=>x.slug===slug);if(!v)return;editing=true;$('editSlug').value=v.slug;$('judul').value=v.judul||'';$('slug').value=v.slug;$('driveId').value=v.driveId||'';$('kategori').value=v.kategori||'';$('kategori').disabled=true;$('tanggal').value=v.tanggal||'';$('jam').value=v.jam||'00:00';$('deskripsi').value=v.deskripsi||'';$('coverFile').value='';$('formTitle').textContent='Edit Video: '+(v.judul||v.slug);window.scrollTo({top:0,behavior:'smooth'})}
+async function deleteVideo(slug){const v=videos.find(x=>x.slug===slug);if(!v||!confirm('Hapus video "'+(v.judul||slug)+'"?'))return;try{const cover=v.cover||'';videos=videos.filter(x=>x.slug!==slug);await saveVideos();if(cover.startsWith('covers/')){const sha=await coverSha(cover);if(sha)await api(repoPath(cover),{method:'DELETE',body:JSON.stringify({message:'Delete cover '+slug,sha,branch:BRANCH})})}await loadData();msg($('status'),'✅ Video dihapus.','ok')}catch(e){msg($('status'),'❌ '+e.message,'err')}}
+function resetForm(){editing=false;$('form').reset();$('editSlug').value='';$('slug').value='';$('kategori').disabled=false;$('formTitle').textContent='Tambah Video Baru';clearMsg($('status'));nowDate()}
+$('login').onclick=async()=>{const t=$('token').value.trim();if(!t)return;token=t;sessionStorage.setItem(KEY,t);try{await loadData();$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');$('token').value=''}catch(e){sessionStorage.removeItem(KEY);token='';msg($('loginStatus'),'❌ '+e.message,'err')}}
+$('logout').onclick=()=>{sessionStorage.removeItem(KEY);token='';location.reload()}
+$('refresh').onclick=loadData;$('form').onsubmit=submitForm;$('reset').onclick=resetForm;$('judul').oninput=updateAutoSlug;$('kategori').onchange=updateAutoSlug;
+if(token){loadData().then(()=>{$('loginCard').classList.add('hidden');$('app').classList.remove('hidden')}).catch(()=>{sessionStorage.removeItem(KEY);token='';$('app').classList.add('hidden')})}else{$('app').classList.add('hidden');nowDate()}
+</script></body></html>
