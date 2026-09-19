@@ -29,5 +29,15 @@
     "deskripsi": "tes3",
     "kategori": "barat",
     "cover": "covers/tes3-barat-part1.jpg"
+  },
+  {
+    "slug": "tes4-indonesia-part2",
+    "judul": "tes4",
+    "driveId": "1xWGipQyRJEcWyGFHIkL0jWB4ujcvWtFS",
+    "tanggal": "2026-09-20",
+    "jam": "01:22",
+    "deskripsi": "tes4",
+    "kategori": "indonesia",
+    "cover": "covers/tes4-indonesia-part2.jpg"
   }
 ]
