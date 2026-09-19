@@ -9,5 +9,15 @@
     "kategori": "indonesia",
     "cover": "covers/tes-indonesia-part1.jpg",
     "ogCover": "covers/og/tes-indonesia-part1.webp"
+  },
+  {
+    "slug": "tes2-papua-part1",
+    "judul": "tes2",
+    "driveId": "1QWB-hQrDKZLuwaEwCx62eV-yBBoZXmmN",
+    "tanggal": "2026-09-20",
+    "jam": "00:49",
+    "deskripsi": "tes2",
+    "kategori": "papua",
+    "cover": "covers/tes2-papua-part1.jpg"
   }
 ]
