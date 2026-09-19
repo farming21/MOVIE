@@ -8,6 +8,7 @@ on:
       - "generate.py"
       - "scripts/**"
       - "config.json"
+      - "admin/**"
       - ".github/workflows/**"
   workflow_dispatch:
 
