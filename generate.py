@@ -2,7 +2,20 @@
 import html,json,os
 from datetime import datetime
 BASE=os.path.dirname(os.path.abspath(__file__)); DATA=os.path.join(BASE,"videos.json"); TEMPLATES=os.path.join(BASE,"templates"); OUT=os.path.join(BASE,"videos")
-SITE_URL="https://farming21.github.io/MOVIE"; LEGACY="https://farming21.github.io/indonesia"; DEFAULT="assets/img/no-cover.svg"; CATS=("indonesia","papua","barat")
+CONFIG=os.path.join(BASE,"config.json")
+def load_config():
+    with open(CONFIG,encoding="utf-8") as f:c=json.load(f)
+    return c
+CONFIG_DATA=load_config()
+SITE_URL=str(CONFIG_DATA.get("site_url","")).rstrip("/")
+LEGACY=str(CONFIG_DATA.get("legacy_site_url","")).rstrip("/")
+DEFAULT="assets/img/no-cover.svg"
+CATS=tuple(CONFIG_DATA.get("categories",["indonesia","papua","barat"]))
+ADS=CONFIG_DATA.get("ads",{}) if isinstance(CONFIG_DATA.get("ads",{}),dict) else {}
+AD_ENABLED=bool(ADS.get("enabled",False))
+def ad(name):
+    if not AD_ENABLED:return ""
+    return str(ADS.get(name,"") or "").strip()
 def load():
     with open(DATA,encoding="utf-8") as f:v=json.load(f)
     if not isinstance(v,list): raise ValueError("videos.json harus array")
@@ -38,7 +51,7 @@ def rel(v):
 def main():
     vs=load(); ordered=sorted(vs,key=dt,reverse=True)
     it=open(os.path.join(TEMPLATES,"index.html"),encoding="utf-8").read()
-    open(os.path.join(BASE,"index.html"),"w",encoding="utf-8").write(it.replace("{{ VIDEO_CARDS }}","\n".join(card(v) for v in ordered)))
+    open(os.path.join(BASE,"index.html"),"w",encoding="utf-8").write(it.replace("{{ VIDEO_CARDS }}","\n".join(card(v) for v in ordered)).replace("{{ AD_POPUNDER }}",ad("popunder")).replace("{{ AD_SOCIAL_BAR }}",ad("social_bar")).replace("{{ AD_BANNER_DESKTOP }}",ad("banner_desktop")).replace("{{ AD_BANNER_MOBILE }}",ad("banner_mobile")).replace("{{ AD_NATIVE }}",ad("native")))
     os.makedirs(OUT,exist_ok=True)
     for f in os.listdir(OUT):
         if f.endswith(".html"):os.remove(os.path.join(OUT,f))

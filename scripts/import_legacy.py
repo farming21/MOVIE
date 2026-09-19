@@ -4,10 +4,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "videos.json"
-URL = "https://raw.githubusercontent.com/farming21/indonesia/main/videos.json"
+URL = ""  # Isi URL videos.json lama jika memang ingin melakukan migrasi.
 
 if json.loads(DATA.read_text(encoding="utf-8") or "[]"):
     print("videos.json sudah berisi data; migrasi dilewati.")
+    raise SystemExit
+
+if not URL:
+    print("URL legacy belum dikonfigurasi; migrasi dilewati.")
     raise SystemExit
 
 with urllib.request.urlopen(URL, timeout=20) as r:

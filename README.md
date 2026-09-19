@@ -1,4 +1,4 @@
-# farming21/MOVIE
+# MOVIE
 
 Website video + panel admin dalam satu repository.
 
@@ -15,7 +15,7 @@ Website video + panel admin dalam satu repository.
 - GitHub Actions menjalankan generator dan deploy ke GitHub Pages.
 
 ## Admin
-Buka `/admin/`. Panel memakai GitHub Personal Access Token yang dimasukkan sendiri oleh admin. Token hanya disimpan di sessionStorage browser. Token harus memiliki akses Contents: Read and write pada repository `farming21/MOVIE`.
+Buka `/admin/`. Panel memakai GitHub Personal Access Token yang dimasukkan sendiri oleh admin. Token hanya disimpan di sessionStorage browser. Token harus memiliki akses Contents: Read and write pada repository yang dikonfigurasi di Website Settings.
 
 ## Data publikasi
 ```json
@@ -26,7 +26,7 @@ Buka `/admin/`. Panel memakai GitHub Personal Access Token yang dimasukkan sendi
 ```
 
 ## Migrasi
-Data lama dari `farming21/indonesia` dapat diimpor melalui `scripts/import_legacy.py`. Script hanya membaca `videos.json` lama; folder `covers/` lama tidak dibaca.
+Data lama dapat diimpor melalui `scripts/import_legacy.py` setelah URL legacy diisi secara manual jika diperlukan. Script hanya membaca `videos.json` lama; folder `covers/` lama tidak dibaca.
 
 ## GitHub Pages
 Setelah upload ke branch `main`, buka Settings → Pages dan pilih GitHub Actions sebagai Source.

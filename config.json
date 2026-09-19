@@ -1,10 +1,24 @@
 {
-  "site_url": "https://farming21.github.io/MOVIE",
+  "site_name": "",
+  "site_url": "",
   "categories": [
     "indonesia",
     "papua",
     "barat"
   ],
   "timezone": "Asia/Jayapura",
-  "legacy_site_url": "https://farming21.github.io/indonesia"
+  "legacy_site_url": "",
+  "github": {
+    "owner": "",
+    "repository": "",
+    "branch": "main"
+  },
+  "ads": {
+    "enabled": false,
+    "popunder": "",
+    "social_bar": "",
+    "banner_desktop": "",
+    "banner_mobile": "",
+    "native": ""
+  }
 }
