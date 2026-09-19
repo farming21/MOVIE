@@ -19,5 +19,15 @@
     "deskripsi": "tes2",
     "kategori": "papua",
     "cover": "covers/tes2-papua-part1.jpg"
+  },
+  {
+    "slug": "tes3-barat-part1",
+    "judul": "tes3",
+    "driveId": "1Z5Uuy1oaVB3AzXjAhKjH2IoAJ7glURmU",
+    "tanggal": "2026-09-20",
+    "jam": "01:08",
+    "deskripsi": "tes3",
+    "kategori": "barat",
+    "cover": "covers/tes3-barat-part1.jpg"
   }
 ]
