@@ -39,5 +39,15 @@
     "deskripsi": "tes4",
     "kategori": "indonesia",
     "cover": "covers/tes4-indonesia-part2.jpg"
+  },
+  {
+    "slug": "tes5-papua-part2",
+    "judul": "tes5",
+    "driveId": "18G87SrJEp37EsQRB7ji1RkiFqVjAiymA",
+    "tanggal": "2026-09-20",
+    "jam": "01:24",
+    "deskripsi": "tes5",
+    "kategori": "papua",
+    "cover": "covers/tes5-papua-part2.jpg"
   }
 ]
