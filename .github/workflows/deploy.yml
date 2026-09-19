@@ -7,6 +7,7 @@ on:
       - "templates/**"
       - "generate.py"
       - "scripts/**"
+      - "config.json"
       - ".github/workflows/**"
   workflow_dispatch:
 
